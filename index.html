@@ -1,0 +1,452 @@
+```html
+<!-- ... existing code ... -->
+        <span>Élèves: <b id="stat-total" class="text-sky-700">0</b></span>
+        <span class="text-sky-300">|</span>
+        <span>Moy: <b id="stat-moy" class="text-sky-700">--</b>/20</span>
+        <span class="text-sky-300">|</span>
+        <span>Notés: <b id="stat-eval" class="text-emerald-600">0</b></span>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <button onclick="addSeriesPrompt()" class="bg-sky-500 hover:bg-sky-600 text-white px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition shadow-xs" title="Créer une nouvelle série de course">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+          <span>+ Série</span>
+        </button>
+        <button onclick="addStudent()" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition shadow-xs">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+          <span>Élève</span>
+        </button>
+        <button onclick="openBaremesModal()" class="bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 px-2 py-1 rounded text-xs font-medium flex items-center gap-1 transition">
+<!-- ... existing code ... -->
+  <!-- ================= BARRE D'OUTILS ET FILTRES (LIGNE FINE) ================= -->
+  <div class="no-print bg-sky-100/60 border-b border-sky-200 px-3 py-1 flex items-center justify-between gap-2 shrink-0">
+    <!-- Onglets de Séries et Filtres dynamiques -->
+    <div class="flex items-center gap-1 text-xs overflow-x-auto py-0.5" id="series-tabs-container">
+      <!-- Les onglets de séries sont générés ici par JS -->
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="text-[11px] text-sky-800 bg-white/70 px-2 py-0.5 rounded border border-sky-200 hidden lg:flex items-center gap-1 font-mono">
+        <span>Saisie: <b>142</b>➔1'42" • <b>Entrée</b>➔suivant</span>
+      </div>
+      <div class="relative w-36 sm:w-44">
+        <input type="text" id="search-input" oninput="renderTable()" placeholder="Rechercher élève..." class="w-full bg-white border border-sky-300 rounded px-2 py-0.5 pl-6 text-xs focus:ring-1 focus:ring-sky-500 focus:outline-hidden">
+        <svg class="w-3 h-3 text-sky-500 absolute left-2 top-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- BORDEREAU OFFICIEL EN CAS D'IMPRESSION -->
+<!-- ... existing code ... -->
+        <table class="w-full border-collapse text-left text-xs">
+          <thead class="sticky-header bg-gradient-to-b from-sky-100 to-sky-50 border-b border-sky-300 text-sky-950 font-semibold select-none shadow-xs">
+            <tr>
+              <th class="py-1.5 px-2 w-10 text-center">#</th>
+              <th class="py-1.5 px-2 w-28 text-center bg-sky-200/40 border-r border-sky-200" title="Série de départ">🏁 Série</th>
+              <th class="py-1.5 px-2 w-44">Nom & Prénom</th>
+              <th class="py-1.5 px-1.5 w-14 text-center">Sexe</th>
+              <th class="py-1.5 px-2 w-32">Épreuve</th>
+              <th class="py-1.5 px-2 w-24 text-center bg-sky-200/50 border-l border-r border-sky-300 text-sky-900" title="Temps annoncé pour la 1ère fraction">
+                🎯 Ann. C1
+              </th>
+<!-- ... existing code ... -->
+    const BAREME_M250 = [
+      [10.0, 285, 315], // G <= 4'45" | F <= 5'15"
+      [9.5,  292, 323],
+      [9.0,  300, 332],
+      [8.5,  308, 341],
+      [8.0,  317, 351],
+      [7.5,  326, 361],
+      [7.0,  336, 372],
+      [6.5,  346, 384],
+      [6.0,  357, 396],
+      [5.5,  368, 409],
+      [5.0,  380, 423],
+      [4.5,  393, 438],
+      [4.0,  407, 454],
+      [3.5,  422, 471],
+      [3.0,  438, 489],
+      [2.5,  455, 508],
+      [2.0,  473, 528],
+      [1.5,  492, 549],
+      [1.0,  512, 571],
+      [0.5,  535, 595]
+    ];
+
+    // ================= GESTION DES SÉRIES & ÉLÈVES =================
+    let seriesList = [
+      { id: 'S1', name: "Série 1 - Rapide" },
+      { id: 'S2', name: "Série 2 - Filles 500m" },
+      { id: 'S3', name: "Série 3 - Adapté 250m" }
+    ];
+
+    let currentSeriesFilter = 'ALL'; // 'ALL', ou l'ID de la série (ex: 'S1')
+
+    let students = [
+      { id: 1, seriesId: 'S1', name: "BERTRAND Lucas", gender: "G", event: "C500", ann1: "1'30\"", t1: "1'29\"", t2: "1'31\"", t3: "1'30\"" },
+      { id: 2, seriesId: 'S2', name: "MOREAU Camille", gender: "F", event: "C500", ann1: "1'50\"", t1: "1'52\"", t2: "1'54\"", t3: "1'53\"" },
+      { id: 3, seriesId: 'S1', name: "DUBOIS Thomas", gender: "G", event: "C500", ann1: "1'25\"", t1: "1'24\"", t2: "1'26\"", t3: "1'27\"" },
+      { id: 4, seriesId: 'S3', name: "ROUX Manon", gender: "F", event: "C250", ann1: "52\"", t1: "51\"", t2: "53\"", t3: "52\"" },
+      { id: 5, seriesId: 'S3', name: "PETIT Maxime", gender: "G", event: "M250", ann1: "1'45\"", t1: "1'44\"", t2: "1'46\"", t3: "1'47\"" },
+      { id: 6, seriesId: 'S3', name: "LEFEVRE Sarah", gender: "F", event: "M250", ann1: "1'55\"", t1: "1'56\"", t2: "1'57\"", t3: "1'55\"" },
+      { id: 7, seriesId: 'S3', name: "GARCIA Enzo", gender: "G", event: "C250", ann1: "44\"", t1: "43\"", t2: "45\"", t3: "44\"" },
+      { id: 8, seriesId: 'S2', name: "FOURNIER Chloé", gender: "F", event: "C500", ann1: "2'00\"", t1: "", t2: "", t3: "" }
+    ];
+
+    let currentFilter = 'ALL';
+
+    // ================= FONCTIONS GESTION DES SÉRIES =================
+    function addSeriesPrompt() {
+      const num = seriesList.length + 1;
+      const defaultName = `Série ${num}`;
+      const name = prompt("Nom de la nouvelle série :", defaultName);
+      if (name && name.trim()) {
+        const id = 'S_' + Date.now();
+        seriesList.push({ id: id, name: name.trim() });
+        currentSeriesFilter = id;
+        renderSeriesTabs();
+        renderTable();
+      }
+    }
+
+    function renameSeries(id) {
+      const s = seriesList.find(item => item.id === id);
+      if (!s) return;
+      const newName = prompt("Renommer la série :", s.name);
+      if (newName && newName.trim()) {
+        s.name = newName.trim();
+        renderSeriesTabs();
+        renderTable();
+      }
+    }
+
+    function deleteSeries(id) {
+      const count = students.filter(st => st.seriesId === id).length;
+      if (count > 0) {
+        if (!confirm(`Cette série contient ${count} élève(s). Supprimer la série et réaffecter ces élèves à la Série 1 ?`)) {
+          return;
+        }
+        const fallbackId = seriesList.find(s => s.id !== id)?.id || '';
+        students.forEach(st => {
+          if (st.seriesId === id) st.seriesId = fallbackId;
+        });
+      }
+      seriesList = seriesList.filter(s => s.id !== id);
+      if (currentSeriesFilter === id) currentSeriesFilter = 'ALL';
+      renderSeriesTabs();
+      renderTable();
+    }
+
+    function renderSeriesTabs() {
+      const container = document.getElementById('series-tabs-container');
+      if (!container) return;
+
+      let html = `
+        <span class="text-[11px] font-bold text-sky-950 uppercase tracking-wide mr-1 hidden sm:inline">Séries:</span>
+        <button onclick="setSeriesFilter('ALL')" class="px-2.5 py-0.5 rounded text-xs font-semibold transition ${currentSeriesFilter === 'ALL' ? 'bg-sky-600 text-white shadow-2xs' : 'text-sky-900 bg-white/80 hover:bg-sky-200/80 border border-sky-300'}">
+          Toutes (${students.length})
+        </button>
+      `;
+
+      seriesList.forEach(s => {
+        const count = students.filter(st => st.seriesId === s.id).length;
+        const isActive = currentSeriesFilter === s.id;
+        html += `
+          <div class="inline-flex items-center rounded border ${isActive ? 'bg-sky-600 border-sky-700 text-white shadow-2xs' : 'bg-white/80 border-sky-300 text-sky-900 hover:bg-sky-200/80'} text-xs font-semibold overflow-hidden">
+            <button onclick="setSeriesFilter('${s.id}')" class="px-2 py-0.5 flex items-center gap-1" title="Chronométrer cette série">
+              <span>${escapeHtml(s.name)}</span>
+              <span class="text-[10px] ${isActive ? 'bg-sky-700 text-white' : 'bg-sky-100 text-sky-800'} px-1 py-0.1 rounded-full font-mono">${count}</span>
+            </button>
+            <button onclick="renameSeries('${s.id}')" class="px-1 py-0.5 hover:bg-black/10 text-[10px]" title="Renommer la série">✏️</button>
+            <button onclick="deleteSeries('${s.id}')" class="px-1 py-0.5 hover:bg-rose-500 hover:text-white text-[10px] text-slate-400" title="Supprimer">✕</button>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function setSeriesFilter(id) {
+      currentSeriesFilter = id;
+      renderSeriesTabs();
+      renderTable();
+    }
+
+    // ================= FONCTIONS DE PARSING & TEMPS (142 -> 1'42") =================
+<!-- ... existing code ... -->
+    // Navigation clavier verticale au chrono (Entrée ou Flèche bas)
+    function handleKeyDown(e, currentIndex, field) {
+      if (e.key === 'Enter' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        let visibleInputs = Array.from(document.querySelectorAll(`input[data-field="${field}"]`));
+        let pos = visibleInputs.indexOf(e.target);
+        if (pos !== -1 && pos < visibleInputs.length - 1) {
+          visibleInputs[pos + 1].focus();
+          visibleInputs[pos + 1].select();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        let visibleInputs = Array.from(document.querySelectorAll(`input[data-field="${field}"]`));
+        let pos = visibleInputs.indexOf(e.target);
+        if (pos > 0) {
+          visibleInputs[pos - 1].focus();
+          visibleInputs[pos - 1].select();
+        }
+      }
+    }
+
+    // ================= CALCUL DE LA NOTE CCF SUR 20 =================
+<!-- ... existing code ... -->
+      // Mise à jour compteurs d'en-tête
+      document.getElementById('count-all').innerText = cTotal;
+      document.getElementById('count-c500').innerText = cC500;
+      document.getElementById('count-c250').innerText = cC250;
+      document.getElementById('count-m250').innerText = cM250;
+      document.getElementById('count-pending').innerText = (cTotal - cEvaluated);
+
+      document.getElementById('stat-total').innerText = cTotal;
+      document.getElementById('stat-eval').innerText = `${cEvaluated}/${cTotal}`;
+      document.getElementById('stat-moy').innerText = cEvaluated > 0 ? (sumNotes / cEvaluated).toFixed(1) : '--';
+
+      tbody.innerHTML = '';
+
+      // Filtre combiné (Épreuve + Recherche + Série active)
+      let displayStudents = filtered.filter(st => {
+        if (currentSeriesFilter !== 'ALL' && st.seriesId !== currentSeriesFilter) return false;
+        return true;
+      });
+
+      if (displayStudents.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="14" class="text-center py-8 text-slate-400">Aucun élève dans cette série ou selon les critères.</td></tr>`;
+        return;
+      }
+
+      displayStudents.forEach((st, idx) => {
+        let res = calculateStudentScore(st);
+        let tr = document.createElement('tr');
+        tr.className = "hover:bg-sky-50/70 border-b border-sky-100 transition-colors";
+
+        let eventColorBadge = st.event === 'C500' ? 'bg-sky-100 text-sky-800 border-sky-300' :
+                             (st.event === 'C250' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300');
+
+        let noteBadge = res.noteTotale !== null ? 
+          (res.noteTotale >= 14 ? 'bg-emerald-600 text-white' : (res.noteTotale >= 10 ? 'bg-sky-600 text-white' : 'bg-amber-500 text-white')) : 
+          'bg-slate-100 text-slate-400';
+
+        // Options de séries
+        let seriesOptions = seriesList.map(s => 
+          `<option value="${s.id}" ${st.seriesId === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`
+        ).join('');
+
+        tr.innerHTML = `
+          <td class="py-1 px-2 text-center text-slate-400 font-mono text-[11px]">${idx + 1}</td>
+          
+          <!-- Série de l'élève -->
+          <td class="py-1 px-1.5 bg-sky-50/50 border-r border-sky-200">
+            <select onchange="updateStudentField(${st.id}, 'seriesId', this.value)" class="w-full bg-white border border-sky-300 rounded px-1 py-0.5 text-[11px] font-bold text-sky-900 focus:ring-1 focus:ring-sky-500">
+              ${seriesOptions}
+            </select>
+          </td>
+
+          <!-- Nom élève -->
+          <td class="py-1 px-2">
+            <input type="text" value="${escapeHtml(st.name)}" onchange="updateStudentField(${st.id}, 'name', this.value)" 
+              class="w-full bg-transparent border-0 border-b border-transparent hover:border-sky-300 focus:border-sky-600 focus:ring-0 px-1 py-0.5 font-semibold text-slate-800">
+          </td>
+
+          <!-- Sexe F/G -->
+          <td class="py-1 px-1.5 text-center">
+            <select onchange="updateStudentField(${st.id}, 'gender', this.value)" class="bg-white border border-sky-200 rounded px-1 py-0.5 font-bold ${st.gender === 'F' ? 'text-pink-600' : 'text-sky-700'}">
+              <option value="G" ${st.gender === 'G' ? 'selected' : ''}>G</option>
+              <option value="F" ${st.gender === 'F' ? 'selected' : ''}>F</option>
+            </select>
+          </td>
+
+          <!-- Épreuve -->
+          <td class="py-1 px-2">
+            <select onchange="updateStudentField(${st.id}, 'event', this.value)" class="text-[11px] border rounded px-1.5 py-0.5 font-semibold ${eventColorBadge}">
+              <option value="C500" ${st.event === 'C500' ? 'selected' : ''}>🏃 3x500m</option>
+              <option value="C250" ${st.event === 'C250' ? 'selected' : ''}>⚡ C. 250m</option>
+              <option value="M250" ${st.event === 'M250' ? 'selected' : ''}>🚶 M. 250m</option>
+            </select>
+          </td>
+
+          <!-- Annonce C1 -->
+          <td class="py-1 px-2 text-center bg-sky-50/60 border-l border-r border-sky-200">
+            <input type="text" data-field="ann1" value="${st.ann1 || ''}" 
+              placeholder="ex: 142"
+              onblur="normalizeInput(this, ${st.id}, 'ann1')"
+              onkeydown="handleKeyDown(event, ${idx}, 'ann1')"
+              class="w-18 text-center font-mono font-bold bg-white border border-sky-300 rounded px-1 py-0.5 text-sky-950 focus:ring-1 focus:ring-sky-500">
+          </td>
+
+          <!-- Réalisé C1 -->
+          <td class="py-1 px-2 text-center">
+            <input type="text" data-field="t1" value="${st.t1 || ''}" 
+              placeholder="142"
+              onblur="normalizeInput(this, ${st.id}, 't1')"
+              onkeydown="handleKeyDown(event, ${idx}, 't1')"
+              class="w-18 text-center font-mono bg-white border border-slate-300 rounded px-1 py-0.5 text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+          </td>
+
+          <!-- Réalisé C2 -->
+          <td class="py-1 px-2 text-center">
+            <input type="text" data-field="t2" value="${st.t2 || ''}" 
+              placeholder="142"
+              onblur="normalizeInput(this, ${st.id}, 't2')"
+              onkeydown="handleKeyDown(event, ${idx}, 't2')"
+              class="w-18 text-center font-mono bg-white border border-slate-300 rounded px-1 py-0.5 text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+          </td>
+
+          <!-- Réalisé C3 -->
+          <td class="py-1 px-2 text-center">
+            <input type="text" data-field="t3" value="${st.t3 || ''}" 
+              placeholder="142"
+              onblur="normalizeInput(this, ${st.id}, 't3')"
+              onkeydown="handleKeyDown(event, ${idx}, 't3')"
+              class="w-18 text-center font-mono bg-white border border-slate-300 rounded px-1 py-0.5 text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500">
+          </td>
+
+          <!-- Cumul -->
+          <td class="py-1 px-2 text-center font-mono font-bold bg-slate-50 border-l border-slate-200 text-slate-700">
+            ${res.cumul ? formatSeconds(res.cumul) : '--'}
+          </td>
+
+          <!-- Perf /10 -->
+          <td class="py-1 px-1.5 text-center font-mono font-bold bg-amber-50/40 text-amber-900 border-l border-amber-200">
+            ${res.isComplete ? res.notePerf.toFixed(1) : '--'}
+          </td>
+
+          <!-- Proj /6 -->
+          <td class="py-1 px-1.5 text-center font-mono font-bold bg-blue-50/40 text-blue-900 border-l border-blue-200" title="${res.ecartC1 !== null ? 'Écart: ' + res.ecartC1 + 's' : ''}">
+            ${res.ecartC1 !== null ? `${res.noteProj} <span class="text-[9px] font-normal text-slate-400">(${res.ecartC1}s)</span>` : '--'}
+          </td>
+
+          <!-- Rég /4 -->
+          <td class="py-1 px-1.5 text-center font-mono font-bold bg-emerald-50/40 text-emerald-900 border-l border-emerald-200" title="${res.ecartReg !== null ? 'Écart max: ' + res.ecartReg + 's' : ''}">
+            ${res.isComplete ? `${res.noteReg} <span class="text-[9px] font-normal text-slate-400">(${res.ecartReg}s)</span>` : '--'}
+          </td>
+
+          <!-- Note Totale /20 -->
+          <td class="py-1 px-2 text-center border-l border-sky-300">
+            <span class="inline-block w-14 py-0.5 rounded font-mono font-bold text-xs ${noteBadge}">
+              ${res.noteTotale !== null ? res.noteTotale.toFixed(1) : '--'}
+            </span>
+          </td>
+
+          <!-- Suppression -->
+          <td class="no-print py-1 px-1.5 text-center">
+            <button onclick="removeStudent(${st.id})" class="text-slate-300 hover:text-red-500 p-0.5" title="Supprimer élève">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ================= ACTIONS ÉLÈVES & FILTRES =================
+    function updateStudentField(id, field, val) {
+      let st = students.find(s => s.id === id);
+      if (st) {
+        st[field] = val;
+        renderSeriesTabs();
+        renderTable();
+      }
+    }
+
+    function addStudent() {
+      let newId = students.length ? Math.max(...students.map(s => s.id)) + 1 : 1;
+      let targetSeries = (currentSeriesFilter !== 'ALL' && seriesList.some(s => s.id === currentSeriesFilter)) 
+        ? currentSeriesFilter 
+        : (seriesList[0]?.id || 'S1');
+
+      students.unshift({
+        id: newId,
+        seriesId: targetSeries,
+        name: "NOUVEL ÉLÈVE",
+        gender: "G",
+        event: "C500",
+        ann1: "",
+        t1: "",
+        t2: "",
+        t3: ""
+      });
+      renderSeriesTabs();
+      renderTable();
+    }
+
+    function removeStudent(id) {
+      if (confirm("Supprimer cet élève de l'évaluation ?")) {
+        students = students.filter(s => s.id !== id);
+        renderSeriesTabs();
+        renderTable();
+      }
+    }
+
+    function setFilter(filter) {
+<!-- ... existing code ... -->
+    // ================= EXPORT CSV & IMPORT EXPRESS =================
+    function exportCSV() {
+      let csv = "\uFEFFSerie;Nom;Sexe;Epreuve;Annonce C1;Chrono C1;Chrono C2;Chrono C3;Cumul;Perf /10;Projet /6;Regularite /4;Note /20\n";
+      students.forEach(s => {
+        let res = calculateStudentScore(s);
+        let sName = seriesList.find(ser => ser.id === s.seriesId)?.name || 'Série 1';
+        csv += `"${sName}";"${s.name}";"${s.gender}";"${s.event}";"${s.ann1}";"${s.t1}";"${s.t2}";"${s.t3}";"${res.cumul ? formatSeconds(res.cumul) : ''}";"${res.isComplete ? res.notePerf.toFixed(1) : ''}";"${res.ecartC1 !== null ? res.noteProj : ''}";"${res.isComplete ? res.noteReg : ''}";"${res.noteTotale !== null ? res.noteTotale.toFixed(1) : ''}"\n`;
+      });
+
+      let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `CCF_EPS_Lycee_Alain_2026_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+    }
+
+    function openImportModal() { document.getElementById('import-modal').classList.remove('hidden'); }
+    function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
+
+    function processImport() {
+      let text = document.getElementById('import-text').value;
+      let lines = text.split('\n');
+      let nextId = students.length ? Math.max(...students.map(s => s.id)) + 1 : 1;
+      let defaultSeries = currentSeriesFilter !== 'ALL' ? currentSeriesFilter : (seriesList[0]?.id || 'S1');
+      let added = 0;
+
+      lines.forEach(l => {
+        let clean = l.trim();
+        if (!clean) return;
+        let parts = clean.split(/\t|\s{2,}|;/);
+        let name = parts[0].trim();
+        let gender = (parts[1] && parts[1].toUpperCase().includes('F')) ? 'F' : 'G';
+        let event = 'C500';
+        if (clean.includes('C250')) event = 'C250';
+        else if (clean.includes('M250')) event = 'M250';
+
+        students.push({
+          id: nextId++,
+          seriesId: defaultSeries,
+          name: name,
+          gender: gender,
+          event: event,
+          ann1: "", t1: "", t2: "", t3: ""
+        });
+        added++;
+      });
+
+      closeImportModal();
+      document.getElementById('import-text').value = '';
+      renderSeriesTabs();
+      renderTable();
+    }
+
+    // ================= MODALE DES BARÈMES =================
+<!-- ... existing code ... -->
+    // Initialisation au chargement
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSeriesTabs();
+      renderTable();
+    });
+  </script>
+</body>
+</html>
+```
