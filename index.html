@@ -1016,7 +1016,8 @@ function openImport(){
   <button class="btn pri" onclick="processImport()">Ajouter à « ${esc(serName(curSeries))} »</button>`);
 }
 function processImport(){
-  const lines=$('import-text').value.split(/?
+  const lines=$('import-text').value.split(/
+?
 /).map(x=>x.trim()).filter(Boolean);
   let added=0,skipped=0;
   lines.forEach(line=>{
