@@ -321,7 +321,7 @@ const IC={
 const ic=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
 function paintIcons(root=document){root.querySelectorAll('[data-ic]').forEach(e=>{e.innerHTML=ic(e.dataset.ic,+e.dataset.s||18)})}
 
-// ================= BARÈMES OFFICIELS (LYCÉE ALAIN) =================
+// ================= BARÈMES OFFICIELS SUR 12 POINTS =================
 const PERF_T0=83;
 const PERF_G='12 12 12 11.5 11.25 11 10.75 10.5 10 9.75 9.5 9.25 9 8.5 8.35 8.2 8 7.85 7.7 7.5 7.35 7.2 7 6.85 6.7 6.5 6.45 6.3 6.15 6 5.9 5.85 5.8 5.7 5.6 5.5 5.4 5.3 5.2 5.1 5 4.9 4.8 4.7 4.6 4.55 4.5 4.45 4.4 4.35 4.3 4.2 4.1 4 3.9 3.8 3.7 3.6 3.5 3.35 3.2 3 2.85 2.7 2.6 2.5 2.45 2.4 2.35 2.3 2.25 2.2 2.15 2.1 2.07 2.05 2 1.75 1.5 1 0.85 0.7 0.5 0.25'.split(' ').map(Number);
 const PERF_F=Array(28).fill(12).concat('11.5 11 10.8 10.5 10.3 10 9.8 9.5 9 8.8 8.5 8.3 8 7.9 7.8 7.7 7.5 7.4 7.2 7 6.9 6.8 6.7 6.6 6.6 6.5 6.4 6.3 6.2 6 6 5.9 5.9 5.8 5.7 5.6 5.5 5.4 5.3 5.2 5.1 5.1 5 5 4.9 4.8 4.7 4.6 4.5 4.4 4.3 4.2 4.1 4.1 4 4 3.9 3.8 3.7 3.6 3.6 3.5 3.5 3.4 3.4 3.3 3.2 3.2 3.1 3 3 2.9 2.9 2.8 2.8 2.7 2.6 2.5 2.5 2.4 2.4 2.3 2.3 2.2 2.2 2.1 2 2 1.9 1.9 1.8 1.8 1.7 1.7 1.6 1.6 1.5 1.4 1.3 1.2 1.1 1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2'.split(' ').map(Number));
@@ -1331,7 +1331,7 @@ function buildXlsxBytes(scope){
   const n=sheets.length,XH='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
   const dn=sheets.map((s,i)=>s.filter?`<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">${XE("'"+s.name.replace(/'/g,"''")+"'!"+s.abs)}</definedName>`:'').join('');
   const files=[
-    {name:'[Content_Types].xml',data:`${XH}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
+    {name:'[Content_Types].xml',data:`${XH}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officeopendocument.spreadsheetml.worksheet+xml"/>`).join('')}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`},
     {name:'_rels/.rels',data:`${XH}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
     {name:'xl/workbook.xml',data:`${XH}<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${sheets.map((s,i)=>`<sheet name="${XE(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets>${dn?`<definedNames>${dn}</definedNames>`:''}</workbook>`},
     {name:'xl/_rels/workbook.xml.rels',data:`${XH}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${n+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
@@ -1355,3 +1355,4 @@ window.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+```[cite: 1, 3]
